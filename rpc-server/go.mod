@@ -6,7 +6,7 @@ require (
 	github.com/apache/thrift v0.13.0
 	github.com/cloudwego/kitex v0.5.2
 	github.com/kitex-contrib/registry-etcd v0.1.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
@@ -34,6 +34,7 @@ require (
 	github.com/redis/go-redis/v9 v9.0.5 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/goconvey v1.7.2 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tidwall/gjson v1.9.3 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
