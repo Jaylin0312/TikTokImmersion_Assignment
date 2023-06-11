@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: etcd
+  name: etcd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: etcd
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/tiktokimmersion-assignment-default: "true"
+        io.kompose.service: etcd
+    spec:
+      containers:
+        - args:
+            - etcd
+            - --advertise-client-urls
+            - http://etcd:2379
+            - --listen-client-urls
+            - http://0.0.0.0:2379
+          image: quay.io/coreos/etcd:v3.5.0
+          name: etcd
+          ports:
+            - containerPort: 2379
+          resources: {}
+      restartPolicy: Always
+status: {}
