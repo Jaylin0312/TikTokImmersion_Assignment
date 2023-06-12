@@ -68,7 +68,7 @@ func (s *IMServiceImpl) Pull(ctx context.Context, req *rpc.PullRequest) (*rpc.Pu
 	}
 
 	start := req.GetCursor()
-	end := start + limit - 1
+	end := start + int64(req.GetLimit())
 
 	messages, err := rdb.GetMessagesByGroupID(ctx, groupID, start, end, req.GetReverse())
 	if err != nil {
@@ -80,8 +80,8 @@ func (s *IMServiceImpl) Pull(ctx context.Context, req *rpc.PullRequest) (*rpc.Pu
 	hasMore := false
 	if len(messages) > int(limit) {
 		messages = messages[:limit]
-		hasMore = true
-	}
+			hasMore = true
+		}
 
 	for _, msg := range messages {
 		temp := &rpc.Message{
