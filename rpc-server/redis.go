@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -60,26 +59,27 @@ func (c *RedisClient) GetMessagesByGroupID(ctx context.Context, groupID string, 
 		return nil, err
 	}
 
-	// Create a slice to store the timestamps for sorting
-	timestamps := make([]int64, 0, len(rawMessages))
+	// Create a slice to store the messages
+	messageSlice := make([]*Message, 0, len(rawMessages))
 
-	// Extract and sort the timestamps
-	for timestampStr := range rawMessages {
-		timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+	// Iterate over the raw messages and append them to the slice
+	for _, msgJSON := range rawMessages {
+		temp := &Message{}
+		err := json.Unmarshal([]byte(msgJSON), temp)
 		if err != nil {
 			return nil, err
 		}
-		timestamps = append(timestamps, timestamp)
+		messageSlice = append(messageSlice, temp)
 	}
 
-	// Sort the timestamps based on the desired order
+	// Sort the messages based on the timestamp
 	if reverse {
-		sort.Slice(timestamps, func(i, j int) bool {
-			return timestamps[i] > timestamps[j]
+		sort.SliceStable(messageSlice, func(i, j int) bool {
+			return messageSlice[i].Timestamp > messageSlice[j].Timestamp
 		})
 	} else {
-		sort.Slice(timestamps, func(i, j int) bool {
-			return timestamps[i] < timestamps[j]
+		sort.SliceStable(messageSlice, func(i, j int) bool {
+			return messageSlice[i].Timestamp < messageSlice[j].Timestamp
 		})
 	}
 
@@ -89,28 +89,17 @@ func (c *RedisClient) GetMessagesByGroupID(ctx context.Context, groupID string, 
 	if startIndex < 0 {
 		startIndex = 0
 	}
-	if endIndex >= len(timestamps) {
-		endIndex = len(timestamps) - 1
+	if endIndex >= len(messageSlice) {
+		endIndex = len(messageSlice) - 1
 	}
 	if endIndex < startIndex {
 		return nil, fmt.Errorf("invalid start and end indices")
 	}
 
-	// Iterate over the selected range of timestamps and retrieve the corresponding messages
-	for i := startIndex; i <= endIndex; i++ {
-		timestamp := timestamps[i]
-		timestampStr := strconv.FormatInt(timestamp, 10)
-		msgJSON := rawMessages[timestampStr]
-		temp := &Message{}
-		err := json.Unmarshal([]byte(msgJSON), temp)
-		if err != nil {
-			return nil, err
-		}
-		messages = append(messages, temp)
-	}
+	// Retrieve the selected range of messages
+	messages = messageSlice[startIndex : endIndex+1]
 
 	fmt.Println("Messages retrieved from Redis:", messages)
 
 	return messages, nil
 }
-
