@@ -78,10 +78,14 @@ func (s *IMServiceImpl) Pull(ctx context.Context, req *rpc.PullRequest) (*rpc.Pu
 
 	respMessages := make([]*rpc.Message, 0)
 	hasMore := false
+	nextCursor := int64(0)
 	if len(messages) > int(limit) {
 		messages = messages[:limit]
-			hasMore = true
-		}
+		hasMore = true
+		nextCursor = start + limit
+	} else if len(messages) > 0 {
+		nextCursor = start + int64(len(messages))
+	}
 
 	for _, msg := range messages {
 		temp := &rpc.Message{
@@ -93,13 +97,14 @@ func (s *IMServiceImpl) Pull(ctx context.Context, req *rpc.PullRequest) (*rpc.Pu
 		respMessages = append(respMessages, temp)
 	}
 
-	nextCursor := start + limit
 	resp := rpc.NewPullResponse()
 	resp.Messages = respMessages
 	resp.Code = 0
 	resp.Msg = "success"
 	resp.HasMore = &hasMore
-	resp.NextCursor = &nextCursor
+	if hasMore {
+		resp.NextCursor = &nextCursor
+	}
 
 	return resp, nil
 }
